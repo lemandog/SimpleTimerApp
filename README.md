@@ -1,5 +1,4 @@
 # SimpleTimerApp
 pure java with Swing UI, multithread
 
-
-![изображение_2021-04-11_033337](https://user-images.githubusercontent.com/73439281/114287258-b2b5a800-9a76-11eb-9069-df4db5473ef0.png)
+![Снимок](https://user-images.githubusercontent.com/73439281/114449851-52457880-9be6-11eb-92ef-ea94050ce226.PNG)
