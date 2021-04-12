@@ -1,5 +1,7 @@
 # SimpleTimerApp
-Java with Swing UI, multithread
+Java with Swing UI, multithread;
+
+
 as of current update:
 
 
