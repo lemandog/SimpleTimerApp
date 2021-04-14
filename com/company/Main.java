@@ -13,6 +13,7 @@ import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Objects;
 
 import static com.company.Main.*;
 
@@ -22,7 +23,7 @@ public static boolean beepSet = false;
 static int hours = 0;
 static int minutes = 0;
 static int seconds = 0;
-static final float VER = 1.05f;
+static final float VER = 1.06f;
 
 static boolean permitRun = false;
 static int timerSwitchID; //Selector
@@ -39,6 +40,7 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
     }
 
     public static synchronized void timeStart() {
+
         Thread timerAction = new Thread(() -> {
         time.setForeground(Color.WHITE); //Because it could be red is timer gone off previously
         long cooldown = System.currentTimeMillis();
@@ -66,7 +68,7 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
             try {
                 Clip clip = AudioSystem.getClip();
                 URL soundURL = Main.class.getResource("beep2.wav");
-                AudioInputStream inputStream = AudioSystem.getAudioInputStream(soundURL);
+                AudioInputStream inputStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(soundURL));
                 clip.open(inputStream);
                 clip.start();
                 clip.drain();
@@ -107,18 +109,6 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
     updateClockUI();
     }
 
-    static void updateClockUI() {
-        mainClock = LocalDateTime.now(); //Reference
-        selClock = LocalDateTime.now(); //Time to which we count
-
-        selClock = selClock.plusHours(hours);
-        selClock = selClock.plusMinutes(minutes);
-        selClock = selClock.plusSeconds(seconds);
-
-        LocalTime remains = LocalTime.ofSecondOfDay(Duration.between(mainClock,selClock).toSeconds());
-        time.setText(sdfF.format(remains));
-    }
-
     public static void mintime() {
         switch (timerSwitchID) {
             case (50) -> { //SECONDS SELECT
@@ -151,16 +141,16 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
         main.add(mainPan);
         main.add(timerContrl);
         main.add(selector);
-        main.setIconImage((Toolkit.getDefaultToolkit().getImage(Main.class.getResource("timericon.png"))));
+        main.setIconImage((Toolkit.getDefaultToolkit().getImage(Main.class.getResource("timericon.png")))); //Setting icon from resources
 
         mainClock = LocalDateTime.now();
         main.setResizable(false);
-        mainPan.setBackground(Color.BLACK);
         time = new JLabel();
         time.setFont(new Font("Times New Roman",Font.BOLD, 48));
         time.setForeground(Color.WHITE);
         time.setHorizontalAlignment(SwingConstants.CENTER);
-        JCheckBox beeper = new JCheckBox("Play sound when time is up");
+
+        JCheckBox beeper = new JCheckBox("BEEP");
         MyListener beepListener = new MyListener("SET BEEP");
         beeper.addActionListener(beepListener);
 
@@ -206,12 +196,13 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
         selector.add(selected);
 
         mainPan.add(time);
+        mainPan.setBackground(Color.BLACK);
 
-        mainPan.add(beeper);
         timerContrl.add(starter);
         timerContrl.add(stop);
         timerContrl.add(add);
         timerContrl.add(decr);
+        timerContrl.add(beeper);
 
         selector.setLayout(new GridLayout(1,5));
         timerContrl.setLayout(new GridLayout(1,4));
@@ -254,6 +245,18 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
         info.setResizable(false);
         info.setVisible(true);
     }
+
+    static void updateClockUI() {
+        mainClock = LocalDateTime.now(); //Reference
+        selClock = LocalDateTime.now(); //Time to which we count
+
+        selClock = selClock.plusHours(hours);
+        selClock = selClock.plusMinutes(minutes);
+        selClock = selClock.plusSeconds(seconds);
+
+        LocalTime remains = LocalTime.ofSecondOfDay(Duration.between(mainClock,selClock).toSeconds());
+        time.setText(sdfF.format(remains));
+    }
 }
 
 class MyListener implements ActionListener {
@@ -269,6 +272,7 @@ class MyListener implements ActionListener {
             case ("START") -> {  //TIME START
                 permitRun = true;
                 Main.timeStart();
+                updateClockUI();
             }
             case ("STOP") ->{ //TIME STOP
                     permitRun = false;
