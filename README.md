@@ -4,6 +4,4 @@ Java with Swing UI, multithread;
 
 as of current update:
 
-
-
-![Снимок](https://user-images.githubusercontent.com/73439281/114455048-583e5800-9bec-11eb-9120-14301a290ce0.PNG)
+![Снимок](https://user-images.githubusercontent.com/73439281/114650803-e9e4bd00-9cf3-11eb-8448-eb73519d451a.PNG)
