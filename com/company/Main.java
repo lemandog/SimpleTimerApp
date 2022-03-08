@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +21,7 @@ import static com.company.Main.*;
 
 public class Main {
 public static boolean beepSet = false;
+public static boolean powerOffFlag = false;
 
 static int hours = 0;
 static int minutes = 0;
@@ -34,6 +37,19 @@ static public LocalDateTime mainClock;
 static public LocalDateTime selClock;
 static public Thread sound;
 static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault()); //format standard
+public static Font font2;
+public static Font font1;
+
+    static {
+        try {
+            InputStream is = Main.class.getResourceAsStream("pixRectv2.ttf");
+            font1 = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(is)).deriveFont(Font.PLAIN,64);
+            font2 = font1.deriveFont(Font.PLAIN,14);
+        } catch (FontFormatException | IOException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args){
         uiSetup();
@@ -57,6 +73,7 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
             }
             try {Thread.sleep(100);} catch (InterruptedException ignored){} //Busy wait for less CPU time
         }
+            if(powerOffFlag){powerOff();}
             if (beepSet && permitRun){playSound();}
             time.setForeground(Color.RED);
         });
@@ -132,7 +149,7 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
 
     public static void uiSetup() {
         JFrame main = new JFrame("TIMER");
-        main.setSize(400,300);
+        main.setSize(450,300);
         main.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JPanel mainPan = new JPanel();
         JPanel timerContrl = new JPanel();
@@ -146,47 +163,66 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
         mainClock = LocalDateTime.now();
         main.setResizable(false);
         time = new JLabel();
-        time.setFont(new Font("Times New Roman",Font.BOLD, 48));
+        time.setFont(font1);
         time.setForeground(Color.WHITE);
         time.setHorizontalAlignment(SwingConstants.CENTER);
 
         JCheckBox beeper = new JCheckBox("BEEP");
+        beeper.setFont(font2);
         MyListener beepListener = new MyListener("SET BEEP");
         beeper.addActionListener(beepListener);
 
+        JCheckBox powerOff = new JCheckBox("POWEROFF");
+        powerOff.setFont(font2);
+        MyListener powerOffListener = new MyListener("POWER_OFF");
+        powerOff.addActionListener(powerOffListener);
+
+        JPanel checkBoxPanel = new JPanel(new GridLayout(2,1));
+        checkBoxPanel.add(powerOff);
+        checkBoxPanel.add(beeper);
+
         JButton starter = new JButton("START");
+        starter.setFont(font2);
         MyListener startListener = new MyListener("START");
         starter.addActionListener(startListener);
 
         JButton stop = new JButton("STOP");
+        stop.setFont(font2);
         MyListener stopListener = new MyListener("STOP");
         stop.addActionListener(stopListener);
 
         JButton add = new JButton("+");
+        add.setFont(font2);
         MyListener addListener = new MyListener("PLUS");
         add.addActionListener(addListener);
 
         JButton decr = new JButton("-");
+        decr.setFont(font2);
         MyListener decrListener = new MyListener("MINUS");
         decr.addActionListener(decrListener);
 
-        JButton hrSel = new JButton("S SEL");
-        MyListener hrSelListener = new MyListener("SECONDS"); //SEC
-        hrSel.addActionListener(hrSelListener);
+        JButton secSel = new JButton("S SEL");
+        secSel.setFont(font2);
+        MyListener secSelListener = new MyListener("SECONDS"); //SEC
+        secSel.addActionListener(secSelListener);
 
         JButton minSel = new JButton("M SEL");
+        minSel.setFont(font2);
         MyListener minSelListener = new MyListener("MINUTES");//MIN
         minSel.addActionListener(minSelListener);
 
-        JButton secSel = new JButton("HR SEL");
-        MyListener secSelListener = new MyListener("HOURS");//HR
-        secSel.addActionListener(secSelListener);
+        JButton hrSel = new JButton("HR SEL");
+        hrSel.setFont(font2);
+        MyListener hrSelListener = new MyListener("HOURS");//HR
+        hrSel.addActionListener(hrSelListener);
 
         JButton resetSel = new JButton("RESET");
+        resetSel.setFont(font2);
         MyListener resetSelListener = new MyListener("RESET");//HR
         resetSel.addActionListener(resetSelListener);
 
         selected = new JLabel();
+        selected.setFont(font2);
         selected.setHorizontalAlignment(SwingConstants.CENTER); //Just looks pretty
 
         selector.add(hrSel);
@@ -202,7 +238,7 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
         timerContrl.add(stop);
         timerContrl.add(add);
         timerContrl.add(decr);
-        timerContrl.add(beeper);
+        timerContrl.add(checkBoxPanel);
 
         selector.setLayout(new GridLayout(1,5));
         timerContrl.setLayout(new GridLayout(1,4));
@@ -257,8 +293,17 @@ static public DateTimeFormatter sdfF = DateTimeFormatter.ofPattern("HH:mm:ss").w
         LocalTime remains = LocalTime.ofSecondOfDay(Duration.between(mainClock,selClock).toSeconds());
         time.setText(sdfF.format(remains));
     }
-}
+    static private void powerOff(){
+        try {
+            Runtime runtime = Runtime.getRuntime();
+            Process proc = runtime.exec("shutdown -s -t 0");
+            System.exit(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+    }
+}
 class MyListener implements ActionListener {
     private final String id;
     public MyListener(String SetId){
@@ -267,22 +312,24 @@ class MyListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (id) {
-            case ("SET BEEP") -> //BEEP SET
+            case ("POWER_OFF") -> //BEEP SET
                     beepSet = !beepSet;
+            case ("SET BEEP") -> //BEEP SET
+                beepSet = !beepSet;
             case ("START") -> {  //TIME START
                 permitRun = true;
                 Main.timeStart();
                 updateClockUI();
             }
             case ("STOP") ->{ //TIME STOP
-                    permitRun = false;
-                    try{sound.stop();}
-                    catch (Exception ignored){}
+                permitRun = false;
+                try{sound.stop();}
+                catch (Exception ignored){}
             }
             case ("PLUS") -> //TIME ADD
-                    Main.addtime();
+                Main.addtime();
             case ("MINUS") -> //TIME DECREASE
-                    Main.mintime();
+                Main.mintime();
             case ("SECONDS") -> { //SECONDS SELECT
                 selected.setText("SECONDS");
                 timerSwitchID = 50;
