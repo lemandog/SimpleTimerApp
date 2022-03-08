@@ -46,7 +46,6 @@ public static Font font1;
             font1 = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(is)).deriveFont(Font.PLAIN,64);
             font2 = font1.deriveFont(Font.PLAIN,14);
         } catch (FontFormatException | IOException e) {
-            System.out.println(e);
             e.printStackTrace();
         }
     }
@@ -313,7 +312,7 @@ class MyListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         switch (id) {
             case ("POWER_OFF") -> //BEEP SET
-                    beepSet = !beepSet;
+                powerOffFlag = !powerOffFlag;
             case ("SET BEEP") -> //BEEP SET
                 beepSet = !beepSet;
             case ("START") -> {  //TIME START
